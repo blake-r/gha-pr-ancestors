@@ -34,7 +34,7 @@ async function fetchPullRequestChangedFiles(octokit: InstanceType<typeof GitHub>
     const changedFiles = new Array<PullRequestChangedFile>(0);
     for (;;) {
         core.info(`Getting pull request files starting from ${after}`);
-        const repository = await octokit.graphql(query) as Repository;
+        const repository = await octokit.graphql<Repository>(query);
         core.debug(JSON.stringify(repository, null, 2));
         repository.pullRequest.files.nodes.forEach(changedFile => changedFiles.push(changedFile));
         after = repository.pullRequest.files.pageInfo.endCursor;
@@ -73,7 +73,7 @@ async function fetchChangedLineParents(octokit: InstanceType<typeof GitHub>, own
         }
     `;
     core.info(`Getting merge commit history`)
-    const repository = await octokit.graphql(query) as Repository;
+    const repository = await octokit.graphql<Repository>(query);
     core.debug(JSON.stringify(repository, null, 2));
     const mergeCommit = repository.pullRequest.mergeCommit || repository.pullRequest.potentialMergeCommit;
     const changedLines: number[] = [];
