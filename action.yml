@@ -1,0 +1,22 @@
+name: Extracts PR ancestor commits
+description: Extracts pull request file ancestor commits
+inputs:
+  owner:
+    description: Repository owner
+    required: true
+    default: ${{ github.repository_owner }}
+  repository:
+    description: Repository
+    required: true
+    default: ${{ github.event.repository.name }}
+  token:
+    description: Repository access token
+    required: true
+    default: ${{ github.token }}
+  pull_number:
+    description: Pull request number
+    required: true
+    default: ${{ github.event.number }}
+runs:
+  using: node16
+  main: dist/main.js

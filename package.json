@@ -1,0 +1,29 @@
+{
+  "name": "gha-pr-ancestors",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/main.ts",
+  "scripts": {
+    "prepare": "husky install"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blake-r/gha-pr-ancestors.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/blake-r/gha-pr-ancestors/issues"
+  },
+  "homepage": "https://github.com/blake-r/gha-pr-ancestors#readme",
+  "dependencies": {
+    "@actions/core": "^1.9.1",
+    "@actions/github": "^5.0.3"
+  },
+  "devDependencies": {
+    "@vercel/ncc": "^0.34.0",
+    "husky": "^8.0.1",
+    "typescript": "^4.7.4"
+  }
+}

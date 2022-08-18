@@ -1,0 +1,13 @@
+on: [pull_request]
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    name: ci
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./
