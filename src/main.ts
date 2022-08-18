@@ -11,13 +11,13 @@ async function main() {
     const pullNumber = parseInt(core.getInput("pull_number"))
     const octokit = github.getOctokit(token);
     const params = [octokit, owner, repository, pullNumber] as const;
-    const changedFiles = await getPullRequestChangedFiles(...params)
+    const changedFiles = await fetchPullRequestChangedFiles(...params)
     for (const changedFile of changedFiles) {
-        await getChangedLineParents(...params, changedFile.path);
+        await fetchChangedLineParents(...params, changedFile.path);
     }
 }
 
-async function getPullRequestChangedFiles(octokit: InstanceType<typeof GitHub>, owner: string, name: string, pullNumber: number): Promise<PullRequestChangedFile[]> {
+async function fetchPullRequestChangedFiles(octokit: InstanceType<typeof GitHub>, owner: string, name: string, pullNumber: number): Promise<PullRequestChangedFile[]> {
     let after: string = null;
     const query = `
         {
@@ -35,6 +35,7 @@ async function getPullRequestChangedFiles(octokit: InstanceType<typeof GitHub>, 
     for (;;) {
         core.info(`Getting pull request files starting from ${after}`);
         const repository = await octokit.graphql(query) as Repository;
+        core.debug(repository.toString())
         changedFiles.push(...repository.pullRequest.files.nodes);
         after = repository.pullRequest.files.pageInfo.endCursor;
         if (!after) {
@@ -44,7 +45,7 @@ async function getPullRequestChangedFiles(octokit: InstanceType<typeof GitHub>, 
     return changedFiles;
 }
 
-async function getChangedLineParents(octokit: InstanceType<typeof GitHub>, owner: string, name: string, pullNumber: number, changedFilePath: string) {
+async function fetchChangedLineParents(octokit: InstanceType<typeof GitHub>, owner: string, name: string, pullNumber: number, changedFilePath: string) {
     const query = `
         {    
             repository(owner: "${owner}", name: "${name}") {
