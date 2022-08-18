@@ -10,7 +10,7 @@ async function main() {
     const token = core.getInput("token");
     const pullNumber = parseInt(core.getInput("pull_number"))
     const octokit = github.getOctokit(token);
-    const params = [octokit, owner, repository, pullNumber]
+    const params = [octokit, owner, repository, pullNumber] as const;
     const changedFiles = await getPullRequestChangedFiles(...params)
     for (const changedFile of changedFiles) {
         await getChangedLineParents(...params, changedFile.path);
