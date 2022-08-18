@@ -18,11 +18,12 @@ async function main() {
 }
 
 async function getPullRequestChangedFiles(octokit: InstanceType<typeof GitHub>, owner: string, name: string, pullNumber: number): Promise<PullRequestChangedFile[]> {
+    let after: string = null;
     const query = `
         {
             repository(owner: "${owner}", name: "${name}") {
-                pullRequest(number:${pullNumber}) {
-                    files(first:100) {
+                pullRequest(number: ${pullNumber}) {
+                    files(first: 1, after: ${after}) {
                         nodes { path }
                         pageInfo { endCursor }
                     }
@@ -30,21 +31,30 @@ async function getPullRequestChangedFiles(octokit: InstanceType<typeof GitHub>, 
             }
         }
     `;
-    const repository = await octokit.graphql(query) as Repository;
-    return repository.pullRequest.files.nodes;
+    const changedFiles = new Array<PullRequestChangedFile>(1);
+    for (;;) {
+        core.info(`Getting pull request files starting from ${after}`);
+        const repository = await octokit.graphql(query) as Repository;
+        changedFiles.push(...repository.pullRequest.files.nodes);
+        after = repository.pullRequest.files.pageInfo.endCursor;
+        if (!after) {
+            break;
+        }
+    }
+    return changedFiles;
 }
 
 async function getChangedLineParents(octokit: InstanceType<typeof GitHub>, owner: string, name: string, pullNumber: number, changedFilePath: string) {
     const query = `
         {    
             repository(owner: "${owner}", name: "${name}") {
-                pullRequest(number:${pullNumber}) {
+                pullRequest(number: ${pullNumber}) {
                     potentialMergeCommit {
                     # mergeCommit {
                         id
-                        history(first:2, path:"${changedFilePath}") {
+                        history(first: 2, path: "${changedFilePath}") {
                             nodes {
-                                blame(path:"${changedFilePath}") {
+                                blame(path: "${changedFilePath}") {
                                     ranges {
                                         startingLine
                                         endingLine
@@ -61,6 +71,7 @@ async function getChangedLineParents(octokit: InstanceType<typeof GitHub>, owner
             }
         }
     `;
+    core.info(`Getting merge commit history`)
     const repository = await octokit.graphql(query) as Repository;
     const mergeCommit = repository.pullRequest.mergeCommit || repository.pullRequest.potentialMergeCommit;
     const changedLines: number[] = [];
