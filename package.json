@@ -19,7 +19,8 @@
   "homepage": "https://github.com/blake-r/gha-pr-ancestors#readme",
   "dependencies": {
     "@actions/core": "^1.9.1",
-    "@actions/github": "^5.0.3"
+    "@actions/github": "^5.0.3",
+    "@octokit/graphql-schema": "^10.74.2"
   },
   "devDependencies": {
     "@vercel/ncc": "^0.34.0",
