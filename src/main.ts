@@ -35,7 +35,7 @@ async function fetchPullRequestChangedFiles(octokit: InstanceType<typeof GitHub>
     for (;;) {
         core.info(`Getting pull request files starting from ${after}`);
         const repository = await octokit.graphql(query) as Repository;
-        core.debug(repository.toString())
+        core.debug(JSON.stringify(repository))
         changedFiles.push(...repository.pullRequest.files.nodes);
         after = repository.pullRequest.files.pageInfo.endCursor;
         if (!after) {
