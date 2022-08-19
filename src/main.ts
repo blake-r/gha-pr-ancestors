@@ -56,8 +56,8 @@ async function fetchPullRequestCommitIds(octokit: InstanceType<typeof GitHub>, o
         const repository = data.repository as Repository;
         core.debug(JSON.stringify(data, null, 2));
         if (!pullCommitIds) {
-            pullCommitIds.push(repository.pullRequest.mergeCommit?.id);
-            pullCommitIds.push(repository.pullRequest.potentialMergeCommit?.id);
+            pullCommitIds.push(repository.pullRequest.mergeCommit?.id || "");
+            pullCommitIds.push(repository.pullRequest.potentialMergeCommit?.id || "");
         }
         pullCommitIds.push(...repository.pullRequest.commits.nodes.map(commit => commit.id));
         if (!(after = repository.pullRequest.commits.pageInfo.endCursor)) {
@@ -134,7 +134,7 @@ async function fetchChangedLineParents(octokit: InstanceType<typeof GitHub>, own
             }
         }
     `;
-    core.info(`Getting merge commit history for file ${changedFilePath}`)
+    core.info(`Getting merge commit history for file ${changedFilePath} of ${mergeCommitType}`)
     const data = await octokit.graphql<GraphQlQueryResponseData>({
         query: query,
         owner: owner,
