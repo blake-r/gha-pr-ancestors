@@ -162,8 +162,8 @@ async function fetchChangedLineParents(octokit: InstanceType<typeof GitHub>, own
             firstCommit = historyCommit;
             continue;
         }
-        if (!(historyCommit.oid in pullCommitIds)) {
-            core.info(`Oldest commit reached`);
+        if (pullCommitIds.indexOf(historyCommit.oid) != -1) {
+            core.info(`Ancestor commit reached`);
             lastCommit = historyCommit;
             break;
         }
