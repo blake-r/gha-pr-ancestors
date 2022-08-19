@@ -55,8 +55,11 @@ async function fetchPullRequestCommitIds(octokit: InstanceType<typeof GitHub>, o
             pullNumber: pullNumber,
             after: after,
         });
-        const repository = data.repository as Repository;
         core.debug(JSON.stringify(data, null, 2));
+        const repository = data.repository as Repository;
+        if (!(after = repository.pullRequest.commits.pageInfo.endCursor)) {
+            break;
+        }
         if (!pullCommitIds.length) {
             pullCommitIds.push(
                 repository.pullRequest.mergeCommit?.oid,
@@ -64,9 +67,6 @@ async function fetchPullRequestCommitIds(octokit: InstanceType<typeof GitHub>, o
             );
         }
         pullCommitIds.push(...repository.pullRequest.commits.nodes.map(commit => commit.commit.oid));
-        if (!(after = repository.pullRequest.commits.pageInfo.endCursor)) {
-            break;
-        }
     }
     core.info("Pull request commit ids:\n" + JSON.stringify(pullCommitIds, null, 2));
     return pullCommitIds;
@@ -102,10 +102,10 @@ async function fetchPullRequestChangedFilePaths(octokit: InstanceType<typeof Git
         });
         core.debug(JSON.stringify(data, null, 2));
         const repository = data.repository as Repository;
-        changedFilePaths.push(...repository.pullRequest.files.nodes.map(changedFile => changedFile.path));
         if (!(after = repository.pullRequest.files.pageInfo.endCursor)) {
             break;
         }
+        changedFilePaths.push(...repository.pullRequest.files.nodes.map(changedFile => changedFile.path));
     }
     core.info("Pull request changed file paths:\n" + JSON.stringify(changedFilePaths, null, 2));
     return changedFilePaths;
@@ -145,7 +145,7 @@ async function fetchChangedLineParents(octokit: InstanceType<typeof GitHub>, own
     let firstCommit = null as Commit;
     let lastCommit = null as Commit;
     for (;;) {
-        core.info(`Getting history for file "${changedFilePath}" of ${mergeCommitType}  starting from ${after}`)
+        core.info(`Getting history for file "${changedFilePath}" of ${mergeCommitType} starting from ${after}`)
         const data = await octokit.graphql<GraphQlQueryResponseData>({
             query: query,
             owner: owner,
@@ -157,6 +157,9 @@ async function fetchChangedLineParents(octokit: InstanceType<typeof GitHub>, own
         core.debug(JSON.stringify(data, null, 2));
         const repository = data.repository as Repository;
         const mergeCommit = repository.pullRequest.mergeCommit || repository.pullRequest.potentialMergeCommit;
+        if (!(after = mergeCommit.history.pageInfo.endCursor)) {
+            break;
+        }
         const historyCommit = mergeCommit.history.nodes[0];
         if (pullCommitIds.indexOf(historyCommit.oid) !== -1) {
             if (!firstCommit) {
@@ -166,9 +169,6 @@ async function fetchChangedLineParents(octokit: InstanceType<typeof GitHub>, own
         } else  {
             core.info(`Ancestor commit reached`);
             lastCommit = historyCommit;
-            break;
-        }
-        if (!(after = mergeCommit.history.pageInfo.endCursor)) {
             break;
         }
     }
