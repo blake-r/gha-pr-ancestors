@@ -115,7 +115,7 @@ async function fetchChangedLineParents(octokit: InstanceType<typeof GitHub>, own
     const mergeCommitType = pullCommitIds[0] ? "mergeCommit" : "potentialMergeCommit";
     let after = null as string;
     const query = `
-        query ($owner: String!, $repo: String!, $pullNumber: Int!, after: String, $changedFilePath: String!) {    
+        query ($owner: String!, $repo: String!, $pullNumber: Int!, $after: String, $changedFilePath: String!) {    
             repository(owner: $owner, name: $repo) {
                 pullRequest(number: $pullNumber) {
                     ${mergeCommitType} {
