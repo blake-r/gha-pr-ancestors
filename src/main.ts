@@ -55,11 +55,11 @@ async function fetchPullRequestCommitIds(octokit: InstanceType<typeof GitHub>, o
             after: after,
         });
         const repository = data.repository as Repository;
-        core.debug(JSON.stringify(data, null, 2));
-        if (!pullCommitIds) {
+        core.info(JSON.stringify(data, null, 2));
+        if (!pullCommitIds.length) {
             pullCommitIds.push(
-                repository.pullRequest.mergeCommit.id,
-                repository.pullRequest.potentialMergeCommit.id,
+                repository.pullRequest.mergeCommit?.id,
+                repository.pullRequest.potentialMergeCommit?.id,
             );
         }
         pullCommitIds.push(...repository.pullRequest.commits.nodes.map(commit => commit.id));
