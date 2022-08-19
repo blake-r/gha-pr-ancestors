@@ -19,9 +19,9 @@ async function main() {
 }
 
 async function fetchPullRequestChangedFiles(octokit: InstanceType<typeof GitHub>, owner: string, name: string, pullNumber: number): Promise<PullRequestChangedFile[]> {
-    let after: string = null;
+    let after: string | null = null;
     const query = `
-        query pullRequestFiles($owner: String!, $name: String!, $pullNumber: Int, $after: String) {
+        query pullRequestFiles($owner: String!, $name: String!, $pullNumber: Int!, $after: String) {
             repository(owner: $owner, name: $name) {
                 pullRequest(number: $pullNumber) {
                     files(first:1, after: $after) {
