@@ -158,10 +158,12 @@ async function fetchChangedLineParents(octokit: InstanceType<typeof GitHub>, own
         const repository = data.repository as Repository;
         const mergeCommit = repository.pullRequest.mergeCommit || repository.pullRequest.potentialMergeCommit;
         const historyCommit = mergeCommit.history.nodes[0];
-        if (!firstCommit) {
-            core.info(`First commit set`);
-            firstCommit = historyCommit;
-        } else if (pullCommitIds.indexOf(historyCommit.oid) != -1) {
+        if (pullCommitIds.indexOf(historyCommit.oid) !== -1) {
+            if (!firstCommit) {
+                core.info(`First commit set`);
+                firstCommit = historyCommit;
+            }
+        } else  {
             core.info(`Ancestor commit reached`);
             lastCommit = historyCommit;
             break;
