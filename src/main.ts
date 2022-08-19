@@ -22,10 +22,10 @@ async function fetchPullRequestChangedFiles(octokit: InstanceType<typeof GitHub>
     let after: string = null;
     const query = `
         {
-            query pullRequestFiles($owner: String!, $name: String!, $pullNumber: Num, $after: String) {
-                repository(owner:$owner, name:$name) {
-                    pullRequest(number:$pullNumber) {
-                        files(first:1, after:$after) {
+            query pullRequestFiles($owner: String!, $name: String!, $pullNumber: Num, $after: String!) {
+                repository(owner: $owner, name: $name) {
+                    pullRequest(number: $pullNumber) {
+                        files(first:1, after: $after) {
                             nodes { path }
                             pageInfo { endCursor }
                         }
