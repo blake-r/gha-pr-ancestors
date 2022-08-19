@@ -26,14 +26,14 @@ async function fetchPullRequestCommitIds(octokit: InstanceType<typeof GitHub>, o
             repository(owner: $owner, name: $repo) {
                 pullRequest(number: $pullNumber) {
                     potentialMergeCommit {
-                        id
+                        oid
                     }
                     mergeCommit {
-                        id
+                        oid
                     }
                     commits(first: 100, after: $after) {
                         nodes {
-                            id
+                            oid
                         }
                         pageInfo {
                             endCursor
@@ -116,7 +116,6 @@ async function fetchChangedLineParents(octokit: InstanceType<typeof GitHub>, own
             repository(owner: $owner, name: $repo) {
                 pullRequest(number: $pullNumber) {
                     ${mergeCommitType} {
-                        id
                         history(first: 2, path: $changedFilePath) {
                             nodes {
                                 blame(path: $changedFilePath) {
@@ -124,7 +123,7 @@ async function fetchChangedLineParents(octokit: InstanceType<typeof GitHub>, own
                                         startingLine
                                         endingLine
                                         commit {
-                                            id
+                                            oid
                                             messageHeadline
                                         }
                                     }
