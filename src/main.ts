@@ -145,7 +145,7 @@ async function fetchChangedLineParents(octokit: InstanceType<typeof GitHub>, own
     let firstCommit = null as Commit;
     let lastCommit = null as Commit;
     for (;;) {
-        core.info(`Getting merge commit history for file "${changedFilePath}" of ${mergeCommitType}`)
+        core.info(`Getting history for file "${changedFilePath}" of ${mergeCommitType}  starting from ${after}`)
         const data = await octokit.graphql<GraphQlQueryResponseData>({
             query: query,
             owner: owner,
@@ -159,6 +159,7 @@ async function fetchChangedLineParents(octokit: InstanceType<typeof GitHub>, own
         const mergeCommit = repository.pullRequest.mergeCommit || repository.pullRequest.potentialMergeCommit;
         const historyCommit = mergeCommit.history.nodes[0];
         if (!firstCommit) {
+            core.info(`First commit set`);
             firstCommit = historyCommit;
             continue;
         }
@@ -179,8 +180,8 @@ async function fetchChangedLineParents(octokit: InstanceType<typeof GitHub>, own
         core.info(`Pull request file "${changedFilePath}" is a new one`);
         return
     }
-    core.info(JSON.stringify(firstCommit, null, 2));
-    core.info(JSON.stringify(lastCommit, null, 2));
+    core.info("First commit:\n" + JSON.stringify(firstCommit, null, 2));
+    core.info("Ancestor commit:\n" + JSON.stringify(lastCommit, null, 2));
 }
 
 main().catch(error => {
