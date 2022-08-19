@@ -56,17 +56,15 @@ async function fetchPullRequestCommitIds(octokit: InstanceType<typeof GitHub>, o
         const repository = data.repository as Repository;
         core.debug(JSON.stringify(data, null, 2));
         if (!pullCommitIds) {
-            pullCommitIds.push(
-                repository.pullRequest.mergeCommit?.id,
-                repository.pullRequest.potentialMergeCommit?.id,
-            );
+            pullCommitIds.push(repository.pullRequest.mergeCommit?.id);
+            pullCommitIds.push(repository.pullRequest.potentialMergeCommit?.id);
         }
         pullCommitIds.push(...repository.pullRequest.commits.nodes.map(commit => commit.id));
         if (!(after = repository.pullRequest.commits.pageInfo.endCursor)) {
             break;
         }
     }
-    core.info("Pull request commit ids:\n" + pullCommitIds.join("\n"));
+    core.info("Pull request commit ids:\n" + JSON.stringify(pullCommitIds, null, 2));
     return pullCommitIds;
 }
 
@@ -105,7 +103,7 @@ async function fetchPullRequestChangedFilePaths(octokit: InstanceType<typeof Git
             break;
         }
     }
-    core.info("Pull request changed file paths:\n" + changedFilePaths.join("\n"));
+    core.info("Pull request changed file paths:\n" + JSON.stringify(changedFilePaths, null, 2));
     return changedFilePaths;
 }
 
