@@ -59,7 +59,9 @@ async function fetchChangedLineParents(octokit: InstanceType<typeof GitHub>, own
             repository(owner: $owner, name: $repo) {
                 pullRequest(number: $pullNumber) {
                     commits(first: 100) {
-                        id
+                        nodes {
+                            id
+                        }
                     }
                     potentialMergeCommit {
                     # mergeCommit {
