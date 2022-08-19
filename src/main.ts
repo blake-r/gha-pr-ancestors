@@ -2,6 +2,7 @@ import * as core from "@actions/core";
 import * as github from "@actions/github";
 import {PullRequestChangedFile, Repository} from "@octokit/graphql-schema";
 import {GitHub} from "@actions/github/lib/utils";
+import {GraphQlQueryResponseData} from "@octokit/graphql/dist-types/types";
 
 
 async function main() {
@@ -21,11 +22,13 @@ async function fetchPullRequestChangedFiles(octokit: InstanceType<typeof GitHub>
     let after: string = null;
     const query = `
         {
-            repository(owner: "${owner}", name: "${name}") {
-                pullRequest(number: ${pullNumber}) {
-                    files(first: 1, after: ${after}) {
-                        nodes { path }
-                        pageInfo { endCursor }
+            query pullRequestFiles($owner: String!, $name: String!, $pullNumber: Num, $after: String) {
+                repository(owner:$owner, name:$name) {
+                    pullRequest(number:$pullNumber) {
+                        files(first:1, after:$after) {
+                            nodes { path }
+                            pageInfo { endCursor }
+                        }
                     }
                 }
             }
@@ -34,7 +37,14 @@ async function fetchPullRequestChangedFiles(octokit: InstanceType<typeof GitHub>
     const changedFiles = new Array<PullRequestChangedFile>(0);
     for (;;) {
         core.info(`Getting pull request files starting from ${after}`);
-        const repository = await octokit.graphql<Repository>(query);
+        const data = await octokit.graphql<GraphQlQueryResponseData>({
+            query: query,
+            owner: owner,
+            name: name,
+            pullNumber: pullNumber,
+            after: after,
+        });
+        const repository = data.repository as Repository;
         core.debug(JSON.stringify(repository, null, 2));
         repository.pullRequest.files.nodes.forEach(changedFile => changedFiles.push(changedFile));
         after = repository.pullRequest.files.pageInfo.endCursor;
