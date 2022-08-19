@@ -25,6 +25,7 @@ async function fetchPullRequestCommitIds(octokit: InstanceType<typeof GitHub>, o
         query ($owner: String!, $repo: String!, $pullNumber: Int!, $after: String) {
             repository(owner: $owner, name: $repo) {
                 pullRequest(number: $pullNumber) {
+                    merged
                     potentialMergeCommit {
                         id
                     }
@@ -56,8 +57,10 @@ async function fetchPullRequestCommitIds(octokit: InstanceType<typeof GitHub>, o
         const repository = data.repository as Repository;
         core.debug(JSON.stringify(data, null, 2));
         if (!pullCommitIds) {
-            pullCommitIds.push(repository.pullRequest.mergeCommit?.id || "");
-            pullCommitIds.push(repository.pullRequest.potentialMergeCommit?.id || "");
+            pullCommitIds.push(
+                repository.pullRequest.merged ? repository.pullRequest.mergeCommit.id : "",
+                repository.pullRequest.merged ? "" : repository.pullRequest.potentialMergeCommit.id,
+            );
         }
         pullCommitIds.push(...repository.pullRequest.commits.nodes.map(commit => commit.id));
         if (!(after = repository.pullRequest.commits.pageInfo.endCursor)) {
