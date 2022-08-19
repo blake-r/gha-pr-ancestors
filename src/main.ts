@@ -144,7 +144,7 @@ async function fetchChangedLineParents(octokit: InstanceType<typeof GitHub>, own
     `;
     let firstCommit = null as Commit;
     let lastCommit = null as Commit;
-    for (;;) {
+    for (;!lastCommit;) {
         core.info(`Getting history for file "${changedFilePath}" of ${mergeCommitType} starting from ${after}`)
         const data = await octokit.graphql<GraphQlQueryResponseData>({
             query: query,
