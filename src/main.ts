@@ -119,7 +119,7 @@ async function fetchChangedLineParents(octokit: InstanceType<typeof GitHub>, own
             repository(owner: $owner, name: $repo) {
                 pullRequest(number: $pullNumber) {
                     ${mergeCommitType} {
-                        history(first: 1, after: $after, path: $changedFilePath) {
+                        history(first: 100, after: $after, path: $changedFilePath) {
                             nodes {
                                 oid
                                 blame(path: $changedFilePath) {
@@ -160,16 +160,16 @@ async function fetchChangedLineParents(octokit: InstanceType<typeof GitHub>, own
         if (!(after = mergeCommit.history.pageInfo.endCursor)) {
             break;
         }
-        const historyCommit = mergeCommit.history.nodes[0];
-        if (pullCommitIds.indexOf(historyCommit.oid) !== -1) {
+        for (const historyCommit of mergeCommit.history.nodes) {
+            if (pullCommitIds.indexOf(historyCommit.oid) === -1) {
+                core.info(`Ancestor commit reached`);
+                lastCommit = historyCommit;
+                break;
+            }
             if (!firstCommit) {
                 core.info(`First commit set`);
                 firstCommit = historyCommit;
             }
-        } else  {
-            core.info(`Ancestor commit reached`);
-            lastCommit = historyCommit;
-            break;
         }
     }
     if (!firstCommit) {
