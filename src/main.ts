@@ -25,7 +25,6 @@ async function fetchPullRequestCommitIds(octokit: InstanceType<typeof GitHub>, o
         query ($owner: String!, $repo: String!, $pullNumber: Int!, $after: String) {
             repository(owner: $owner, name: $repo) {
                 pullRequest(number: $pullNumber) {
-                    merged
                     potentialMergeCommit {
                         id
                     }
@@ -55,7 +54,7 @@ async function fetchPullRequestCommitIds(octokit: InstanceType<typeof GitHub>, o
             after: after,
         });
         const repository = data.repository as Repository;
-        core.info(JSON.stringify(data, null, 2));
+        core.debug(JSON.stringify(data, null, 2));
         if (!pullCommitIds.length) {
             pullCommitIds.push(
                 repository.pullRequest.mergeCommit?.id,
@@ -145,16 +144,15 @@ async function fetchChangedLineParents(octokit: InstanceType<typeof GitHub>, own
         pullNumber: pullNumber,
         changedFilePath: changedFilePath,
     });
-    core.debug(JSON.stringify(data, null, 2));
+    core.info(JSON.stringify(data, null, 2));
     const repository = data.repository as Repository;
     const mergeCommit = repository.pullRequest.mergeCommit || repository.pullRequest.potentialMergeCommit;
-    const pullRequestCommitIds = [mergeCommit.id, ...repository.pullRequest.commits.nodes.map(commit => commit.id)];
     const changedLines: number[] = [];
     mergeCommit.history.nodes.forEach(commit => {
         commit.blame.ranges.forEach(blame => {
             const startingLine = blame.startingLine;
             const endingLine = blame.endingLine;
-            if (blame.commit.id in pullRequestCommitIds) {
+            if (blame.commit.id in pullCommitIds) {
                 changedLines.push(startingLine, endingLine);
             } else {
                 for (const lineNumber of changedLines) {
