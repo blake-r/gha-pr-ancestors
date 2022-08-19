@@ -24,7 +24,7 @@ async function fetchPullRequestChangedFiles(octokit: InstanceType<typeof GitHub>
         query pullRequestFiles($owner: String!, $repo: String!, $pullNumber: Int!, $after: String) {
             repository(owner: $owner, name: $repo) {
                 pullRequest(number: $pullNumber) {
-                    files(first:100, after: $after) {
+                    files(first: 100, after: $after) {
                         nodes { path }
                         pageInfo { endCursor }
                     }
@@ -42,8 +42,8 @@ async function fetchPullRequestChangedFiles(octokit: InstanceType<typeof GitHub>
             pullNumber: pullNumber,
             after: after,
         });
+        core.debug(JSON.stringify(data, null, 2));
         const repository = data.repository as Repository;
-        core.debug(JSON.stringify(repository, null, 2));
         repository.pullRequest.files.nodes.forEach(changedFile => changedFiles.push(changedFile));
         after = repository.pullRequest.files.pageInfo.endCursor;
         if (!after) {
@@ -58,6 +58,9 @@ async function fetchChangedLineParents(octokit: InstanceType<typeof GitHub>, own
         query pullRequestFileBlame($owner: String!, $repo: String!, $pullNumber: Int!, $changedFilePath: String!) {    
             repository(owner: $owner, name: $repo) {
                 pullRequest(number: $pullNumber) {
+                    commits(first: 100) {
+                        id
+                    }
                     potentialMergeCommit {
                     # mergeCommit {
                         id
@@ -69,7 +72,7 @@ async function fetchChangedLineParents(octokit: InstanceType<typeof GitHub>, own
                                         endingLine
                                         commit {
                                             id
-                                            message
+                                            messageHeadline
                                         }
                                     }
                                 }
@@ -80,7 +83,7 @@ async function fetchChangedLineParents(octokit: InstanceType<typeof GitHub>, own
             }
         }
     `;
-    core.info(`Getting merge commit history`)
+    core.info(`Getting merge commit history for file ${changedFilePath}`)
     const data = await octokit.graphql<GraphQlQueryResponseData>({
         query: query,
         owner: owner,
@@ -88,20 +91,23 @@ async function fetchChangedLineParents(octokit: InstanceType<typeof GitHub>, own
         pullNumber: pullNumber,
         changedFilePath: changedFilePath,
     });
+    core.debug(JSON.stringify(data, null, 2));
     const repository = data.repository as Repository;
-    core.debug(JSON.stringify(repository, null, 2));
     const mergeCommit = repository.pullRequest.mergeCommit || repository.pullRequest.potentialMergeCommit;
+    const pullRequestCommitIds = [mergeCommit.id, ...repository.pullRequest.commits.nodes.map(commit => commit.id)];
+    core.info(`Pull request commit ids: ${pullRequestCommitIds}`);
     const changedLines: number[] = [];
     mergeCommit.history.nodes.forEach(commit => {
         commit.blame.ranges.forEach(blame => {
             const startingLine = blame.startingLine;
             const endingLine = blame.endingLine;
-            if (blame.commit.id == mergeCommit.id) {
+            if (blame.commit.id in pullRequestCommitIds) {
                 changedLines.push(startingLine, endingLine);
             } else {
                 for (const lineNumber of changedLines) {
                     if (lineNumber <= startingLine && lineNumber <= endingLine) {
                         console.log(`Caught: ${blame.commit.messageHeadline}`)
+                        break
                     }
                 }
             }
