@@ -33,7 +33,9 @@ async function fetchPullRequestCommitIds(octokit: InstanceType<typeof GitHub>, o
                     }
                     commits(first: 100, after: $after) {
                         nodes {
-                            oid
+                            commit {
+                                oid
+                            }
                         }
                         pageInfo {
                             endCursor
